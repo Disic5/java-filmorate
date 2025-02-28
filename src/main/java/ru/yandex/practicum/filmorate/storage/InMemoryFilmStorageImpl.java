@@ -1,6 +1,8 @@
-package ru.yandex.practicum.filmorate.annotation.service;
+package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -9,7 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-public class InMemoryFilmServiceImpl implements FilmService {
+@Component
+public class InMemoryFilmStorageImpl implements FilmStorage {
 
     private final Map<Long, Film> films = new HashMap<>();
 
@@ -33,7 +36,7 @@ public class InMemoryFilmServiceImpl implements FilmService {
             throw new ValidationException("Film is null");
         }
         if (!films.containsKey(film.getId())) {
-            throw new ValidationException("Film not found");
+            throw new NotFoundException("Film not found");
         }
         log.info("Updating film {}", film.getId());
         films.computeIfPresent(film.getId(), (id, oldUser) -> film);
@@ -60,5 +63,15 @@ public class InMemoryFilmServiceImpl implements FilmService {
                 .max()
                 .orElse(0);
         return ++currentId;
+    }
+
+    public Film getFilmById(Long filmId) {
+        if (filmId == null) {
+            throw new ValidationException("Film is null");
+        }
+        if (!films.containsKey(filmId)) {
+            throw new NotFoundException("Film not found filmId " + filmId);
+        }
+        return films.get(filmId);
     }
 }
