@@ -3,8 +3,10 @@ package ru.yandex.practicum.filmorate.annotation.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorageImpl;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -13,12 +15,12 @@ import java.util.Collection;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryFilmServiceImplTest {
-    private FilmService filmService;
+    private FilmStorage filmService;
     private Film film;
 
     @BeforeEach
     void setUp() {
-        filmService = new InMemoryFilmServiceImpl();
+        filmService = new InMemoryFilmStorageImpl();
         film = Film.builder()
                 .id(1L)
                 .name("Film 1")
@@ -59,7 +61,7 @@ class InMemoryFilmServiceImplTest {
     @DisplayName("Ошибка обновление фильма")
     @Test
     void testUpdateFilmFailed() {
-        Exception exception = assertThrows(ValidationException.class, () -> filmService.updateFilm(film));
+        Exception exception = assertThrows(NotFoundException.class, () -> filmService.updateFilm(film));
         assertEquals("Film not found", exception.getMessage());
     }
 

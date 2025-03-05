@@ -1,10 +1,10 @@
-package ru.yandex.practicum.filmorate.annotation.service;
+package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 
-public interface UserService {
+public interface UserStorage {
     Collection<User> findAll();
 
     User createUser(User user);
@@ -12,4 +12,6 @@ public interface UserService {
     User updateUser(User user);
 
     void deleteUser(Long id);
+
+    User findById(Long id);
 }

@@ -3,8 +3,10 @@ package ru.yandex.practicum.filmorate.annotation.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorageImpl;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -12,12 +14,12 @@ import java.util.Collection;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryUserServiceImplTest {
-    private UserService userService;
+    private UserStorage userService;
     private User user;
 
     @BeforeEach
     void setUp() {
-        userService = new InMemoryUserServiceImpl();
+        userService = new InMemoryUserStorageImpl();
         user = User.builder()
                 .id(1L)
                 .name("Jane")
@@ -55,8 +57,8 @@ class InMemoryUserServiceImplTest {
     @DisplayName("Ошибка обновление фильма")
     @Test
     void testUpdateFilmFailed() {
-        Exception exception = assertThrows(ValidationException.class, () -> userService.updateUser(user));
-        assertEquals("User not found", exception.getMessage());
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.updateUser(user));
+        assertEquals("User not found userId: " + user.getId(), exception.getMessage());
     }
 
     @DisplayName("Успешное удаление пользователя")
