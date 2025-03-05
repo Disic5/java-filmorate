@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.LikeValidationException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -30,7 +30,7 @@ public class FilmService {
         User user = userStorage.findById(userId);
         boolean existsLikes = existsLikes(film.getId(), user.getId());
         if (existsLikes) {
-            throw new LikeValidationException("Пользователь уже ставил лайк");
+            throw new ValidationException("Lke", "userId", "Пользователь уже ставил лайк");
         }
 
         return likes.computeIfAbsent(filmId, k -> new HashSet<>()).add(userId);
@@ -46,7 +46,7 @@ public class FilmService {
         User user = userStorage.findById(userId);
         boolean existsLikes = existsLikes(film.getId(), user.getId());
         if (!existsLikes) {
-            throw new LikeValidationException("У фильма нет лайков");
+            throw new ValidationException("Lke", "userId", " фильма нет лайков");
         }
         return removeLike(film.getId(), userId);
     }
@@ -82,7 +82,6 @@ public class FilmService {
                 .limit(validCount)
                 .toList();
     }
-
 
     public Film createFilm(Film film) {
         return filmStorage.createFilm(film);

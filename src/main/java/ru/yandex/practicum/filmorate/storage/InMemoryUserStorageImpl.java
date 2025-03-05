@@ -22,7 +22,7 @@ public class InMemoryUserStorageImpl implements UserStorage {
     @Override
     public User createUser(User user) {
         if (user == null) {
-            throw new ValidationException("User must not be null");
+            throw new ValidationException("User", "user", "User must not be null");
         }
         if (user.getId() == null) {
             user.setId(getNextId());
@@ -50,7 +50,7 @@ public class InMemoryUserStorageImpl implements UserStorage {
     @Override
     public User updateUser(User user) {
         if (user == null) {
-            throw new ValidationException("User is null");
+            throw new ValidationException("User", "user", "User is null");
         }
         if (!users.containsKey(user.getId())) {
             throw new NotFoundException("User not found userId: " + user.getId());
@@ -64,7 +64,7 @@ public class InMemoryUserStorageImpl implements UserStorage {
     @Override
     public void deleteUser(Long id) {
         if (id == null || !users.containsKey(id)) {
-            throw new ValidationException("User is not found userId: " + id);
+            throw new ValidationException("User", "id", "User is not found userId: " + id);
         }
         users.remove(id);
     }

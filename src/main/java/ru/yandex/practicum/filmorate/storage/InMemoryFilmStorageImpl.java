@@ -33,7 +33,7 @@ public class InMemoryFilmStorageImpl implements FilmStorage {
     @Override
     public Film updateFilm(Film film) {
         if (film == null) {
-            throw new ValidationException("Film is null");
+            throw new ValidationException("Film", "film", "Film is null");
         }
         if (!films.containsKey(film.getId())) {
             throw new NotFoundException("Film not found");
@@ -47,12 +47,12 @@ public class InMemoryFilmStorageImpl implements FilmStorage {
     @Override
     public void deleteFilm(Long id) {
         if (id == null) {
-            throw new ValidationException("Film is null");
+            throw new ValidationException("Film", "id", "Film is null");
         }
         if (films.containsKey(id)) {
             films.remove(id);
         } else {
-            throw new ValidationException("Film not found");
+            throw new NotFoundException("Film not found");
         }
     }
 
@@ -67,7 +67,7 @@ public class InMemoryFilmStorageImpl implements FilmStorage {
 
     public Film getFilmById(Long filmId) {
         if (filmId == null) {
-            throw new ValidationException("Film is null");
+            throw new ValidationException("Film", "id", "Film is null");
         }
         if (!films.containsKey(filmId)) {
             throw new NotFoundException("Film not found filmId " + filmId);
