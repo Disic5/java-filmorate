@@ -14,9 +14,6 @@ import ru.yandex.practicum.filmorate.annotation.ValidReleaseDate;
 import java.time.Duration;
 import java.time.LocalDate;
 
-/**
- * Film.
- */
 @Builder
 @Data
 @NoArgsConstructor
