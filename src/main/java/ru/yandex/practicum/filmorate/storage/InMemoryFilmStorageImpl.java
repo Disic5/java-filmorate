@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -73,5 +74,10 @@ public class InMemoryFilmStorageImpl implements FilmStorage {
             throw new NotFoundException("Film not found filmId " + filmId);
         }
         return films.get(filmId);
+    }
+
+    @Override
+    public List<Film> findPopularFilm(int count) {
+        return List.of();
     }
 }

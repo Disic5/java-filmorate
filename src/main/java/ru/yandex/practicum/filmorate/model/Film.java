@@ -3,16 +3,17 @@ package ru.yandex.practicum.filmorate.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.yandex.practicum.filmorate.annotation.PositiveDuration;
 import ru.yandex.practicum.filmorate.annotation.ValidReleaseDate;
 
-import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @Data
@@ -32,7 +33,11 @@ public class Film {
     @ValidReleaseDate
     private LocalDate releaseDate;
 
-    @PositiveDuration
+    @Positive(message = "Продолжительность должна быть положительной")
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
-    private Duration duration;
+    private int duration;
+
+    private List<Genre> genres = new ArrayList<>();
+
+    private Rating mpa;
 }
