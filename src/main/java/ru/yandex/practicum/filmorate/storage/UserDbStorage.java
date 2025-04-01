@@ -88,7 +88,6 @@ public class UserDbStorage implements UserStorage {
     public void addNewFriend(Long userId, Long friendId) {
         String sql = "INSERT INTO user_friends (user_id, friend_id) VALUES (?, ?)";
         jdbcTemplate.update(sql, userId, friendId);
-        jdbcTemplate.update(sql, friendId, userId);
     }
 
     public boolean areFriends(Long userId, Long friendId) {
