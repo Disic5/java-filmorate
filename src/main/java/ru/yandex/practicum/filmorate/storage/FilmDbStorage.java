@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -13,10 +14,7 @@ import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.sql.*;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Primary
 @Repository
@@ -33,49 +31,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film createFilm(Film film) {
-        // Проверка существования рейтинга
-        if (film.getMpa() != null && film.getMpa().getId() != 0) {
-            String ratingCheckSql = "SELECT name FROM rating WHERE id = ?";
-            List<String> ratingNames = jdbcTemplate.query(
-                    ratingCheckSql,
-                    (rs, rowNum) -> rs.getString("name"),
-                    film.getMpa().getId()
-            );
-
-            if (ratingNames.isEmpty()) {
-                throw new NotFoundException("Рейтинг с id=" + film.getMpa().getId() + " не найден");
-            }
-
-            film.getMpa().setName(ratingNames.get(0));
-        }
-
-        // Проверка существования жанров
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            List<Integer> genreIds = film.getGenres().stream()
-                    .map(Genre::getId)
-                    .distinct()
-                    .collect(Collectors.toList());
-
-            String inSql = genreIds.stream()
-                    .map(id -> "?")
-                    .collect(Collectors.joining(", ", "(", ")"));
-
-            String genreCheckSql = "SELECT id FROM genre WHERE id IN " + inSql;
-            List<Integer> existingIds = jdbcTemplate.query(
-                    genreCheckSql,
-                    genreIds.toArray(),
-                    (rs, rowNum) -> rs.getInt("id")
-            );
-
-            List<Integer> notFound = genreIds.stream()
-                    .filter(id -> !existingIds.contains(id))
-                    .collect(Collectors.toList());
-
-            if (!notFound.isEmpty()) {
-                throw new NotFoundException("Жанры с id " + notFound + " не найдены");
-            }
-        }
-
         // Вставка фильма
         String sql = "INSERT INTO film (name, description, release_date, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -96,9 +51,11 @@ public class FilmDbStorage implements FilmStorage {
         // Добавление жанров
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             String genreSql = "MERGE INTO film_genre (film_id, genre_id) KEY(film_id, genre_id) VALUES (?, ?)";
-            for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update(genreSql, film.getId(), genre.getId());
-            }
+            jdbcTemplate.batchUpdate(genreSql, film.getGenres(), film.getGenres().size(),
+                    (ps, genre) -> {
+                        ps.setLong(1, film.getId());
+                        ps.setLong(2, genre.getId());
+                    });
         }
 
         // Подгружаем жанры
@@ -140,39 +97,43 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilmById(Long id) {
-        String sql = "SELECT * FROM film WHERE id = ?";
-        Film film = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
-            Film f = new Film();
-            f.setId(rs.getLong("id"));
-            f.setName(rs.getString("name"));
-            f.setDescription(rs.getString("description"));
-            f.setReleaseDate(rs.getDate("release_date").toLocalDate());
-            f.setDuration(rs.getInt("duration"));
-            Integer ratingId = rs.getObject("rating_id", Integer.class);
-            if (ratingId != null) {
-                String ratingName = jdbcTemplate.queryForObject(
-                        "SELECT name FROM rating WHERE id = ?", String.class, ratingId);
-                f.setMpa(new Rating(ratingId, ratingName));
-            }
-            return f;
-        }, id);
+        try {
+            String sql = "SELECT * FROM film WHERE id = ?";
+            Film film = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+                Film f = new Film();
+                f.setId(rs.getLong("id"));
+                f.setName(rs.getString("name"));
+                f.setDescription(rs.getString("description"));
+                f.setReleaseDate(rs.getDate("release_date").toLocalDate());
+                f.setDuration(rs.getInt("duration"));
+                Integer ratingId = rs.getObject("rating_id", Integer.class);
+                if (ratingId != null) {
+                    String ratingName = jdbcTemplate.queryForObject(
+                            "SELECT name FROM rating WHERE id = ?", String.class, ratingId);
+                    f.setMpa(new Rating(ratingId, ratingName));
+                }
+                return f;
+            }, id);
 
-        // Жанры
-        String genreSql = """
-                    SELECT g.id, g.name
-                    FROM genre g
-                    JOIN film_genre fg ON g.id = fg.genre_id
-                    WHERE fg.film_id = ?
-                """;
-        List<Genre> genres = jdbcTemplate.query(genreSql, (rs, rowNum) -> {
-            Genre genre = new Genre();
-            genre.setId(rs.getInt("id"));
-            genre.setName(rs.getString("name"));
-            return genre;
-        }, id);
-        film.setGenres(genres);
+            // Жанры
+            String genreSql = """
+                        SELECT g.id, g.name
+                        FROM genre g
+                        JOIN film_genre fg ON g.id = fg.genre_id
+                        WHERE fg.film_id = ?
+                    """;
+            List<Genre> genres = jdbcTemplate.query(genreSql, (rs, rowNum) -> {
+                Genre genre = new Genre();
+                genre.setId(rs.getInt("id"));
+                genre.setName(rs.getString("name"));
+                return genre;
+            }, id);
+            film.setGenres(genres);
 
-        return film;
+            return film;
+        } catch (EmptyResultDataAccessException e) {
+            throw new NotFoundException("Фильм с id=" + id + " не найден");
+        }
     }
 
     public List<Genre> getGenres(Long filmId) {
@@ -204,7 +165,6 @@ public class FilmDbStorage implements FilmStorage {
                     "SELECT name FROM rating WHERE id = ?", String.class, ratingId);
             film.setMpa(new Rating(ratingId, ratingName));
         }
-
         return film;
     }
 
@@ -219,15 +179,9 @@ public class FilmDbStorage implements FilmStorage {
                 """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            Film film = mapRowToFilm(rs, rowNum); // из таблицы film
-            film.setGenres(getGenres(film.getId())); // если используешь жанры
+            Film film = mapRowToFilm(rs, rowNum);
+            film.setGenres(getGenres(film.getId()));
             return film;
         }, count);
     }
-
-    private Set<Long> getLikesByFilmId(Long filmId) {
-        String sql = "SELECT user_id FROM film_likes WHERE film_id = ?";
-        return new HashSet<>(jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("user_id"), filmId));
-    }
-
 }

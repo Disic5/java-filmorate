@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -10,7 +12,6 @@ import ru.yandex.practicum.filmorate.storage.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +19,7 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final LikeStorage likeStorage;
+    private final GenreMpaService genreMpaService;
 
     public List<Film> findAllFilms() {
         return filmStorage.findAll().stream().toList();
@@ -53,11 +55,11 @@ public class FilmService {
     }
 
     public Film getFilmById(Long id) {
-        return filmStorage.getFilmById(id);
-    }
-
-    public Set<Long> getLikes(Long filmId) {
-        return likeStorage.getLikes(filmId);
+        try {
+            return filmStorage.getFilmById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NotFoundException("Фильм с id=" + id + " не найден");
+        }
     }
 
     private boolean existsLikes(Long filmId, Long userId) {
@@ -69,6 +71,8 @@ public class FilmService {
     }
 
     public Film createFilm(Film film) {
+        genreMpaService.validateGenres(film.getGenres());
+        genreMpaService.validateRating(film.getMpa());
         return filmStorage.createFilm(film);
     }
 }

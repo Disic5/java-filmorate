@@ -11,7 +11,10 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.sql.*;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -85,6 +88,7 @@ public class UserDbStorage implements UserStorage {
     public void addNewFriend(Long userId, Long friendId) {
         String sql = "INSERT INTO user_friends (user_id, friend_id) VALUES (?, ?)";
         jdbcTemplate.update(sql, userId, friendId);
+        jdbcTemplate.update(sql, friendId, userId);
     }
 
     public boolean areFriends(Long userId, Long friendId) {
@@ -103,6 +107,7 @@ public class UserDbStorage implements UserStorage {
     public void removeFriends(Long userId, Long friendId) {
         String sql = "DELETE FROM user_friends WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(sql, userId, friendId);
+        jdbcTemplate.update(sql, friendId, userId);
     }
 
     private User mapRowToUser(ResultSet rs, int rowNum) throws SQLException {
@@ -115,4 +120,3 @@ public class UserDbStorage implements UserStorage {
         return user;
     }
 }
-
