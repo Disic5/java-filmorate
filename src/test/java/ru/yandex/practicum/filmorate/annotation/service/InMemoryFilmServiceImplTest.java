@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorageImpl;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Collection;
 
@@ -24,7 +23,7 @@ class InMemoryFilmServiceImplTest {
         film = Film.builder()
                 .id(1L)
                 .name("Film 1")
-                .duration(Duration.ofMinutes(30))
+                .duration(30)
                 .description("Film 1 description")
                 .releaseDate(LocalDate.of(2000, 10, 10))
                 .build();
@@ -48,7 +47,7 @@ class InMemoryFilmServiceImplTest {
         Film film1 = Film.builder()
                 .id(2L)
                 .name("Film 2")
-                .duration(Duration.ofMinutes(30))
+                .duration(30)
                 .description("Film 2 description")
                 .releaseDate(LocalDate.of(2024, 10, 10))
                 .build();

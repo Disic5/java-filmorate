@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @RestController
@@ -33,9 +32,9 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Set<Long>> getLikesFilm(@PathVariable Long id) {
-        Set<Long> likes = filmService.getLikes(id);
-        return new ResponseEntity<>(likes, HttpStatus.OK);
+    public ResponseEntity<Film> getFilmById(@PathVariable Long id) {
+        Film film = filmService.getFilmById(id);
+        return ResponseEntity.ok(film);
     }
 
     @PostMapping
@@ -50,9 +49,9 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public ResponseEntity<Boolean> likeFilm(@PathVariable Long id, @PathVariable Long userId) {
-        boolean isLikeFilm = filmService.addLikeFilm(id, userId);
-        return new ResponseEntity<>(isLikeFilm, HttpStatus.OK);
+    public ResponseEntity<Void> likeFilm(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.addLikeFilm(id, userId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping
@@ -71,9 +70,8 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public ResponseEntity<Boolean> removeLike(@PathVariable Long id, @PathVariable Long userId) {
-        boolean removed = filmService.removeLikeFilm(id, userId);
-        return new ResponseEntity<>(removed, HttpStatus.OK);
+    public ResponseEntity<Void> removeLike(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.removeLikeFilm(id, userId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
-
 }

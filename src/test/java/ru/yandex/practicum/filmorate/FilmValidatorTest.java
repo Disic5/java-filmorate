@@ -9,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -34,7 +33,7 @@ public class FilmValidatorTest {
                 .name("Test Film")
                 .description("Test Description")
                 .releaseDate(LocalDate.now())
-                .duration(Duration.ofMinutes(30))
+                .duration(30)
                 .build();
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -49,7 +48,7 @@ public class FilmValidatorTest {
                 .name("")
                 .description("Test Description")
                 .releaseDate(LocalDate.now())
-                .duration(Duration.ofMinutes(30))
+                .duration(30)
                 .build();
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -64,7 +63,7 @@ public class FilmValidatorTest {
                 .name("Test Film")
                 .description("")
                 .releaseDate(LocalDate.now())
-                .duration(Duration.ofMinutes(30))
+                .duration(30)
                 .build();
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -79,7 +78,7 @@ public class FilmValidatorTest {
                 .name("Test Film")
                 .description("Test Description")
                 .releaseDate(LocalDate.now())
-                .duration(Duration.ofMinutes(-30))
+                .duration(-30)
                 .build();
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -94,7 +93,7 @@ public class FilmValidatorTest {
                 .name("Test Film")
                 .description("Test Description")
                 .releaseDate(LocalDate.parse("1895-12-27"))
-                .duration(Duration.ofMinutes(30))
+                .duration(30)
                 .build();
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
